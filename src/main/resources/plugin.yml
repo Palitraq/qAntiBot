@@ -1,0 +1,14 @@
+name: qAntiBot
+version: 1.0
+main: ru.palitraq.qantibot.qAntiBot
+api-version: 1.16
+author: Palitraq
+commands:
+  qab:
+    description: Основная команда плагина
+    permission: qantibot.admin
+permissions:
+  qantibot.admin:
+    default: op
+  qantibot.bypass:
+    default: op

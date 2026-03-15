@@ -1,0 +1,84 @@
+settings:
+  # Время на решение одного этапа (в секундах)
+  time-per-round: 10
+  # Количество киков до бана
+  max-kicks-before-ban: 3
+  # Время бана в минутах
+  ban-time-minutes: 5
+  # Сколько дней игрок не будет видеть капчу после прохождения (иммунитет по IP)
+  immunity-days: 3
+
+messages:
+  prefix: "&8[&bqAnti&fBot&8] "
+  # Сообщение при входе больше не используется (работает автоматически), но можно оставить
+  join-message: ""
+  join-hover: ""
+
+  kick-reason: "&cВы не прошли проверку на бота!\n&7Попробуйте снова."
+  ban-reason: "&cВаш IP заблокирован на 5 минут за провал проверки."
+  title-header: "&8Найди: "
+  success: "&aВы успешно прошли проверку!"
+  timer-expired: "&cВремя вышло! Вы не успели нажать."
+  reload: "&aКонфиг перезагружен."
+
+  player-not-found: "&cИгрок не найден."
+  already-verified: "&cЭтот игрок уже прошел проверку или проходит её."
+  forced-pass: "&aИгрок %player% принудительно прошел проверку."
+  forced-start: "&aПроверка запущена для игрока %player%."
+  unban-success: "&aIP %ip% разбанен."
+  unban-fail: "&cIP %ip% не был найден в бане."
+  bypass: "&aУ вас есть право на обход проверки."
+
+# Список предметов (Материал 1.16.5: Имя для GUI)
+# Шрифт: Small Caps + Leet (читаемый для людей, сложный для OCR)
+items:
+  STONE: "ᴋᴀᴍᴇʜь"
+  GRASS_BLOCK: "6лᴏᴋ ᴛᴘᴀʙы"
+  DIRT: "3ᴇᴍля"
+  COBBLESTONE: "6ʏлыӂʜuᴋ"
+  OAK_PLANKS: "ᴅʏ6ᴏʙыᴇ ᴅᴏᴄᴋu"
+  BEDROCK: "6ᴇᴅᴘᴏᴋ"
+  SAND: "пᴇᴄᴏᴋ"
+  GRAVEL: "ᴦᴘᴀʙuŭ"
+  GOLD_ORE: "3ᴏлᴏᴛᴀя ᴘʏᴅᴀ"
+  IRON_ORE: "ӂᴇлᴇ3ʜᴀя ᴘʏᴅᴀ"
+  COAL_ORE: "ʏᴦᴏльʜᴀя ᴘʏᴅᴀ"
+  OAK_LOG: "ᴅʏ6"
+  STRIPPED_OAK_LOG: "ᴏ6ᴛᴇᴄᴀʜʜыŭ ᴅʏ6"
+  SPONGE: "ᴦʏ6ᴋᴀ"
+  GLASS: "ᴄᴛᴇᴋлᴏ"
+  LAPIS_ORE: "лᴀ3ʏᴘuᴛ"
+  SANDSTONE: "пᴇᴄ4ᴀʜuᴋ"
+  WOOL: "шᴇᴘᴄᴛь"
+  GOLD_BLOCK: "3ᴏлᴏᴛᴏŭ 6лᴏᴋ"
+  IRON_BLOCK: "ӂᴇлᴇ3ʜыŭ 6лᴏᴋ"
+  BRICKS: "ᴋuᴘпu4u"
+  TNT: "ᴅuʜᴀᴍuᴛ"
+  BOOKSHELF: "ᴋʜuӂʜᴀя пᴏлᴋᴀ"
+  MOSSY_COBBLESTONE: "ᴍᴏx"
+  OBSIDIAN: "ᴏ6ᴄuᴅuᴀʜ"
+  TORCH: "фᴀᴋᴇл"
+  CHEST: "ᴄʏʜᴅʏᴋ"
+  DIAMOND_ORE: "ᴀлᴍᴀ3ʜᴀя ᴘʏᴅᴀ"
+  CRAFTING_TABLE: "ʙᴇᴘᴄᴛᴀᴋ"
+  FURNACE: "пᴇ4ь"
+  LADDER: "лᴇᴄᴛʜuцᴀ"
+  SNOW: "ᴄʜᴇᴦ"
+  ICE: "лёᴅ"
+  CACTUS: "ᴋᴀᴋᴛʏᴄ"
+  CLAY: "ᴦлuʜᴀ"
+  PUMPKIN: "ᴛыᴋʙᴀ"
+  NETHER_RACK: "ʜᴇ3ᴇᴘᴀᴋ"
+  SOUL_SAND: "пᴇᴄᴏᴋ ᴅʏш"
+  GLOWSTONE: "ᴄʙᴇᴛᴏᴋᴀᴍᴇʜь"
+  MELON: "ᴀᴘ6ʏ3"
+  MYCELIUM: "ᴍuцᴇлuŭ"
+  EMERALD_ORE: "u3ʏᴍᴘʏᴅ"
+  BEACON: "ᴍᴀяᴋ"
+  ANVIL: "ʜᴀᴋᴏʙᴀльʜя"
+  SLIME_BLOCK: "6лᴏᴋ ᴄлu3u"
+  BARRIER: "6ᴀᴘьᴇᴘ"
+  IRON_TRAPDOOR: "ӂᴇлᴇ3ʜыŭ люᴋ"
+  HAY_BLOCK: "ᴄʜᴏп ᴄᴇʜᴀ"
+  COAL_BLOCK: "ʏᴦᴏльʜыŭ 6лᴏᴋ"
+  PACKED_ICE: "плᴏᴛʜыŭ лёᴅ"

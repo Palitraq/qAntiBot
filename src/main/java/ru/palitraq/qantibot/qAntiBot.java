@@ -355,6 +355,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          sender.sendMessage(this.color("&b/qab reload &7- Перезагрузить конфиг"));
          sender.sendMessage(this.color("&b/qab unban <ip> &7- Разбанить IP"));
          sender.sendMessage(this.color("&b/qab force <игрок> &7- Принудительно пропустить капчу"));
+         sender.sendMessage(this.color("&b/qab captcha <игрок> &7- Принудительно запустить капчу"));
          return true;
       } else if (args[0].equalsIgnoreCase("reload")) {
          this.reloadConfig();
@@ -375,6 +376,24 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          if (p != null) {
             this.passVerification(p);
             sender.sendMessage(this.getMessage("messages.forced-pass").replace("%player%", p.getName()));
+         } else {
+            sender.sendMessage(this.getMessage("messages.player-not-found"));
+         }
+
+         return true;
+      } else if (args[0].equalsIgnoreCase("captcha") && args.length > 1) {
+         Player p = Bukkit.getPlayer(args[1]);
+         if (p != null) {
+            String ip = p.getAddress().getAddress().getHostAddress();
+            String verifyKey = p.getName() + "_" + ip;
+            this.verifiedPlayers.remove(verifyKey);
+            this.pendingVerification.add(p.getUniqueId());
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+               if (p.isOnline()) {
+                  this.startVerification(p);
+               }
+            }, 20L);
+            sender.sendMessage(this.getMessage("messages.forced-start").replace("%player%", p.getName()));
          } else {
             sender.sendMessage(this.getMessage("messages.player-not-found"));
          }

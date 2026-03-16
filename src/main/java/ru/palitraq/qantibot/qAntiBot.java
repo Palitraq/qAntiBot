@@ -48,6 +48,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
+   private static final Pattern GRADIENT_PATTERN = Pattern.compile("<gradient:(#[A-Fa-f0-9]{6}):(#[A-Fa-f0-9]{6})>(.*?)</gradient>", Pattern.DOTALL);
+   private static final Pattern HEX_PATTERN = Pattern.compile("[&<]#([A-Fa-f0-9]{6})>?");
+   
    private final Map<String, Long> verifiedPlayers = new ConcurrentHashMap<>();
    private final Map<String, Long> bannedIps = new ConcurrentHashMap<>();
    private final Map<String, Integer> kickCounts = new ConcurrentHashMap<>();
@@ -66,6 +69,15 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       this.setupDataFile();
       this.getServer().getPluginManager().registerEvents(this, this);
       this.getCommand("qab").setExecutor(this);
+      
+      if (this.captchaItems.isEmpty()) {
+         this.getLogger().severe("❌ Не загружено ни одного предмета для капчи! Проверьте config.yml");
+         this.getLogger().severe("❌ Плагин отключается.");
+         Bukkit.getPluginManager().disablePlugin(this);
+         return;
+      }
+      
+      this.getLogger().info("✓ Загружено " + this.captchaItems.size() + " предметов для капчи");
       this.getLogger().info("qAntiBot успешно запущен!");
    }
 
@@ -97,7 +109,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          try {
             this.dataFile.createNewFile();
          } catch (IOException var3) {
-            var3.printStackTrace();
+            this.getLogger().warning("Не удалось создать data.json: " + var3.getMessage());
          }
       }
 
@@ -149,7 +161,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       try (FileWriter writer = new FileWriter(this.dataFile)) {
          this.gson.toJson(json, writer);
       } catch (IOException var2) {
-         var2.printStackTrace();
+         this.getLogger().warning("Не удалось сохранить data.json: " + var2.getMessage());
       }
 
    }
@@ -415,8 +427,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       if (text == null) {
          return "";
       } else {
-         Pattern gradientPattern = Pattern.compile("<gradient:(#[A-Fa-f0-9]{6}):(#[A-Fa-f0-9]{6})>(.*?)</gradient>");
-         Matcher gradientMatcher = gradientPattern.matcher(text);
+         Matcher gradientMatcher = GRADIENT_PATTERN.matcher(text);
          StringBuffer sb = new StringBuffer();
 
          while(gradientMatcher.find()) {
@@ -439,8 +450,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
 
          gradientMatcher.appendTail(sb);
          text = sb.toString();
-         Pattern hexPattern = Pattern.compile("[&<]#([A-Fa-f0-9]{6})>?");
-         Matcher hexMatcher = hexPattern.matcher(text);
+         Matcher hexMatcher = HEX_PATTERN.matcher(text);
          StringBuffer hexSb = new StringBuffer();
 
          while(hexMatcher.find()) {

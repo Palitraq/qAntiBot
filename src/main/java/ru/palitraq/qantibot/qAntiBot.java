@@ -69,21 +69,21 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       this.setupDataFile();
       this.getServer().getPluginManager().registerEvents(this, this);
       this.getCommand("qab").setExecutor(this);
-      
+
       if (this.captchaItems.isEmpty()) {
-         this.getLogger().severe("❌ Не загружено ни одного предмета для капчи! Проверьте config.yml");
-         this.getLogger().severe("❌ Плагин отключается.");
+         this.getLogger().severe("❌ No items loaded for captcha! Check config.yml");
+         this.getLogger().severe("❌ Plugin disabled.");
          Bukkit.getPluginManager().disablePlugin(this);
          return;
       }
-      
-      this.getLogger().info("✓ Загружено " + this.captchaItems.size() + " предметов для капчи");
-      this.getLogger().info("qAntiBot успешно запущен!");
+
+      this.getLogger().info("✓ Loaded " + this.captchaItems.size() + " items for captcha");
+      this.getLogger().info("qAntiBot successfully enabled!");
    }
 
    public void onDisable() {
       this.saveDataFile();
-      this.getLogger().info("qAntiBot выключен!");
+      this.getLogger().info("qAntiBot disabled!");
    }
 
    private void loadItems() {
@@ -109,7 +109,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          try {
             this.dataFile.createNewFile();
          } catch (IOException var3) {
-            this.getLogger().warning("Не удалось создать data.json: " + var3.getMessage());
+            this.getLogger().warning("Failed to create data.json: " + var3.getMessage());
          }
       }
 
@@ -136,7 +136,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
             }
          }
       } catch (Exception e) {
-         this.getLogger().warning("Не удалось загрузить data.json, создаётся новый файл");
+         this.getLogger().warning("Failed to load data.json, creating new file");
       }
 
       this.cleanupData();
@@ -161,7 +161,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       try (FileWriter writer = new FileWriter(this.dataFile)) {
          this.gson.toJson(json, writer);
       } catch (IOException var2) {
-         this.getLogger().warning("Не удалось сохранить data.json: " + var2.getMessage());
+         this.getLogger().warning("Failed to save data.json: " + var2.getMessage());
       }
 
    }
@@ -362,13 +362,13 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
 
    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
       if (!sender.hasPermission("qantibot.admin")) {
-         sender.sendMessage(this.color("&cНет прав."));
+         sender.sendMessage(this.color("&cNo permission."));
          return true;
       } else if (args.length == 0) {
-         sender.sendMessage(this.color("&b/qab reload &7- Перезагрузить конфиг"));
-         sender.sendMessage(this.color("&b/qab unban <ip> &7- Разбанить IP"));
-         sender.sendMessage(this.color("&b/qab force <игрок> &7- Принудительно пропустить капчу"));
-         sender.sendMessage(this.color("&b/qab captcha <игрок> &7- Принудительно запустить капчу"));
+         sender.sendMessage(this.color("&b/qab reload &7- Reload config"));
+         sender.sendMessage(this.color("&b/qab unban <ip> &7- Unban IP"));
+         sender.sendMessage(this.color("&b/qab force <player> &7- Force skip captcha"));
+         sender.sendMessage(this.color("&b/qab captcha <player> &7- Force start captcha"));
          return true;
       } else if (args[0].equalsIgnoreCase("reload")) {
          this.reloadConfig();

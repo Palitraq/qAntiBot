@@ -3,10 +3,10 @@ package ru.palitraq.qantibot;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.md_5.bungee.api.ChatColor;
@@ -43,15 +44,15 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
-   private final Map<String, Long> verifiedPlayers = new HashMap();
-   private final Map<String, Long> bannedIps = new HashMap();
-   private final Map<String, Integer> kickCounts = new HashMap();
-   private final Set<UUID> pendingVerification = new HashSet();
-   private final Map<UUID, Integer> playerRounds = new HashMap();
-   private final Map<UUID, Material> targetBlocks = new HashMap();
-   private final Map<UUID, BukkitTask> timeoutTasks = new HashMap();
-   private final Set<UUID> reopeningInventory = new HashSet();
-   private final Map<Material, String> captchaItems = new HashMap();
+   private final Map<String, Long> verifiedPlayers = new ConcurrentHashMap<>();
+   private final Map<String, Long> bannedIps = new ConcurrentHashMap<>();
+   private final Map<String, Integer> kickCounts = new ConcurrentHashMap<>();
+   private final Set<UUID> pendingVerification = ConcurrentHashMap.newKeySet();
+   private final Map<UUID, Integer> playerRounds = new ConcurrentHashMap<>();
+   private final Map<UUID, Material> targetBlocks = new ConcurrentHashMap<>();
+   private final Map<UUID, BukkitTask> timeoutTasks = new ConcurrentHashMap<>();
+   private final Set<UUID> reopeningInventory = ConcurrentHashMap.newKeySet();
+   private final Map<Material, String> captchaItems = new ConcurrentHashMap<>();
    private File dataFile;
    private FileConfiguration dataConfig;
 
@@ -98,14 +99,14 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
 
       this.dataConfig = YamlConfiguration.loadConfiguration(this.dataFile);
       Iterator var1;
-      String key;
+      String encodedKey;
       if (this.dataConfig.contains("verified")) {
          var1 = this.dataConfig.getConfigurationSection("verified").getKeys(false).iterator();
 
          while(var1.hasNext()) {
-            key = (String)var1.next();
-            key = key.replace("''", "");
-            this.verifiedPlayers.put(key, this.dataConfig.getLong("verified.''" + key + "''"));
+            encodedKey = (String)var1.next();
+            String key = new String(Base64.getDecoder().decode(encodedKey), StandardCharsets.UTF_8);
+            this.verifiedPlayers.put(key, this.dataConfig.getLong("verified." + encodedKey));
          }
       }
 
@@ -113,9 +114,9 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          var1 = this.dataConfig.getConfigurationSection("banned").getKeys(false).iterator();
 
          while(var1.hasNext()) {
-            key = (String)var1.next();
-            key = key.replace("''", "");
-            this.bannedIps.put(key, this.dataConfig.getLong("banned.''" + key + "''"));
+            encodedKey = (String)var1.next();
+            String key = new String(Base64.getDecoder().decode(encodedKey), StandardCharsets.UTF_8);
+            this.bannedIps.put(key, this.dataConfig.getLong("banned." + encodedKey));
          }
       }
 
@@ -123,9 +124,9 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          var1 = this.dataConfig.getConfigurationSection("kicks").getKeys(false).iterator();
 
          while(var1.hasNext()) {
-            key = (String)var1.next();
-            key = key.replace("''", "");
-            this.kickCounts.put(key, this.dataConfig.getInt("kicks.''" + key + "''"));
+            encodedKey = (String)var1.next();
+            String key = new String(Base64.getDecoder().decode(encodedKey), StandardCharsets.UTF_8);
+            this.kickCounts.put(key, this.dataConfig.getInt("kicks." + encodedKey));
          }
       }
 
@@ -138,13 +139,16 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       this.dataConfig.set("banned", (Object)null);
       this.dataConfig.set("kicks", (Object)null);
       this.verifiedPlayers.forEach((k, v) -> {
-         this.dataConfig.set("verified.''" + k + "''", v);
+         String encodedKey = Base64.getEncoder().encodeToString(k.getBytes(StandardCharsets.UTF_8));
+         this.dataConfig.set("verified." + encodedKey, v);
       });
       this.bannedIps.forEach((k, v) -> {
-         this.dataConfig.set("banned.''" + k + "''", v);
+         String encodedKey = Base64.getEncoder().encodeToString(k.getBytes(StandardCharsets.UTF_8));
+         this.dataConfig.set("banned." + encodedKey, v);
       });
       this.kickCounts.forEach((k, v) -> {
-         this.dataConfig.set("kicks.''" + k + "''", v);
+         String encodedKey = Base64.getEncoder().encodeToString(k.getBytes(StandardCharsets.UTF_8));
+         this.dataConfig.set("kicks." + encodedKey, v);
       });
 
       try {
@@ -312,6 +316,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       Objects.requireNonNull(p);
       var6.runTask(this, p::closeInventory);
       p.sendMessage(this.getMessage("messages.success"));
+      this.saveDataFile();
    }
 
    private void failVerification(Player p, String reasonKey) {
@@ -329,6 +334,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          this.kickCounts.put(ip, kicks);
          p.kickPlayer(this.getMessage("messages." + reasonKey));
       }
+      this.saveDataFile();
 
    }
 
@@ -340,9 +346,9 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
    }
 
    private void cancelTimeout(UUID uuid) {
-      if (this.timeoutTasks.containsKey(uuid)) {
-         ((BukkitTask)this.timeoutTasks.get(uuid)).cancel();
-         this.timeoutTasks.remove(uuid);
+      BukkitTask task = this.timeoutTasks.remove(uuid);
+      if (task != null && !task.isCancelled()) {
+         task.cancel();
       }
 
    }

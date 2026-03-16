@@ -1,11 +1,15 @@
 package ru.palitraq.qantibot;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import java.awt.Color;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -54,7 +58,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
    private final Set<UUID> reopeningInventory = ConcurrentHashMap.newKeySet();
    private final Map<Material, String> captchaItems = new ConcurrentHashMap<>();
    private File dataFile;
-   private FileConfiguration dataConfig;
+   private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
    public void onEnable() {
       this.saveDefaultConfig();
@@ -88,7 +92,7 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
    }
 
    private void setupDataFile() {
-      this.dataFile = new File(this.getDataFolder(), "data.yml");
+      this.dataFile = new File(this.getDataFolder(), "data.json");
       if (!this.dataFile.exists()) {
          try {
             this.dataFile.createNewFile();
@@ -97,37 +101,30 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
          }
       }
 
-      this.dataConfig = YamlConfiguration.loadConfiguration(this.dataFile);
-      Iterator var1;
-      String encodedKey;
-      if (this.dataConfig.contains("verified")) {
-         var1 = this.dataConfig.getConfigurationSection("verified").getKeys(false).iterator();
-
-         while(var1.hasNext()) {
-            encodedKey = (String)var1.next();
-            String key = new String(Base64.getDecoder().decode(encodedKey), StandardCharsets.UTF_8);
-            this.verifiedPlayers.put(key, this.dataConfig.getLong("verified." + encodedKey));
+      try (FileReader reader = new FileReader(this.dataFile)) {
+         JsonObject json = this.gson.fromJson(reader, JsonObject.class);
+         if (json != null) {
+            if (json.has("verified")) {
+               JsonObject verified = json.getAsJsonObject("verified");
+               for (var entry : verified.entrySet()) {
+                  this.verifiedPlayers.put(entry.getKey(), entry.getValue().getAsLong());
+               }
+            }
+            if (json.has("banned")) {
+               JsonObject banned = json.getAsJsonObject("banned");
+               for (var entry : banned.entrySet()) {
+                  this.bannedIps.put(entry.getKey(), entry.getValue().getAsLong());
+               }
+            }
+            if (json.has("kicks")) {
+               JsonObject kicks = json.getAsJsonObject("kicks");
+               for (var entry : kicks.entrySet()) {
+                  this.kickCounts.put(entry.getKey(), entry.getValue().getAsInt());
+               }
+            }
          }
-      }
-
-      if (this.dataConfig.contains("banned")) {
-         var1 = this.dataConfig.getConfigurationSection("banned").getKeys(false).iterator();
-
-         while(var1.hasNext()) {
-            encodedKey = (String)var1.next();
-            String key = new String(Base64.getDecoder().decode(encodedKey), StandardCharsets.UTF_8);
-            this.bannedIps.put(key, this.dataConfig.getLong("banned." + encodedKey));
-         }
-      }
-
-      if (this.dataConfig.contains("kicks")) {
-         var1 = this.dataConfig.getConfigurationSection("kicks").getKeys(false).iterator();
-
-         while(var1.hasNext()) {
-            encodedKey = (String)var1.next();
-            String key = new String(Base64.getDecoder().decode(encodedKey), StandardCharsets.UTF_8);
-            this.kickCounts.put(key, this.dataConfig.getInt("kicks." + encodedKey));
-         }
+      } catch (Exception e) {
+         this.getLogger().warning("Не удалось загрузить data.json, создаётся новый файл");
       }
 
       this.cleanupData();
@@ -135,24 +132,22 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
 
    private void saveDataFile() {
       this.cleanupData();
-      this.dataConfig.set("verified", (Object)null);
-      this.dataConfig.set("banned", (Object)null);
-      this.dataConfig.set("kicks", (Object)null);
-      this.verifiedPlayers.forEach((k, v) -> {
-         String encodedKey = Base64.getEncoder().encodeToString(k.getBytes(StandardCharsets.UTF_8));
-         this.dataConfig.set("verified." + encodedKey, v);
-      });
-      this.bannedIps.forEach((k, v) -> {
-         String encodedKey = Base64.getEncoder().encodeToString(k.getBytes(StandardCharsets.UTF_8));
-         this.dataConfig.set("banned." + encodedKey, v);
-      });
-      this.kickCounts.forEach((k, v) -> {
-         String encodedKey = Base64.getEncoder().encodeToString(k.getBytes(StandardCharsets.UTF_8));
-         this.dataConfig.set("kicks." + encodedKey, v);
-      });
+      JsonObject json = new JsonObject();
 
-      try {
-         this.dataConfig.save(this.dataFile);
+      JsonObject verifiedObj = new JsonObject();
+      this.verifiedPlayers.forEach(verifiedObj::addProperty);
+      json.add("verified", verifiedObj);
+
+      JsonObject bannedObj = new JsonObject();
+      this.bannedIps.forEach(bannedObj::addProperty);
+      json.add("banned", bannedObj);
+
+      JsonObject kicksObj = new JsonObject();
+      this.kickCounts.forEach(kicksObj::addProperty);
+      json.add("kicks", kicksObj);
+
+      try (FileWriter writer = new FileWriter(this.dataFile)) {
+         this.gson.toJson(json, writer);
       } catch (IOException var2) {
          var2.printStackTrace();
       }

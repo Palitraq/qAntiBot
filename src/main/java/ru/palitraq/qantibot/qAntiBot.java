@@ -46,6 +46,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+import org.bstats.bukkit.Metrics;
 
 public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
    private static final Pattern GRADIENT_PATTERN = Pattern.compile("<gradient:(#[A-Fa-f0-9]{6}):(#[A-Fa-f0-9]{6})>(.*?)</gradient>", Pattern.DOTALL);
@@ -69,6 +70,10 @@ public class qAntiBot extends JavaPlugin implements Listener, CommandExecutor {
       this.setupDataFile();
       this.getServer().getPluginManager().registerEvents(this, this);
       this.getCommand("qab").setExecutor(this);
+
+      // bStats Metrics
+      int pluginId = 30421;
+      Metrics metrics = new Metrics(this, pluginId);
 
       if (this.captchaItems.isEmpty()) {
          this.getLogger().severe("❌ No items loaded for captcha! Check config.yml");
